@@ -1,0 +1,18 @@
+{
+  "checkedAt": "2026-11-15T16:11:22+01:00",
+  "success": false,
+  "message": "Sin actualización: no se obtuvieron torneos verificables de FTM. Se conserva la última instantánea, si existe.",
+  "sources": [
+    {
+      "source": "FTM",
+      "success": false,
+      "error": "403 Client Error: Forbidden for url: https://competicion.ftm.es/app/api/calendario.do"
+    },
+    {
+      "source": "RFET",
+      "success": true,
+      "role": "directorio territorial",
+      "ftmLinkFound": true
+    }
+  ]
+}

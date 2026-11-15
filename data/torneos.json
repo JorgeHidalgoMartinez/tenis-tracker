@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": null,
+  "generationMode": "sin_sincronizacion_real_confirmada",
+  "origin": {
+    "name": "Rivas-Vaciamadrid",
+    "lat": 40.3293,
+    "lon": -3.5161,
+    "radiusKm": 100
+  },
+  "coverage": "Sin torneos revalidados todavía. La instantánea original del ZIP no se presenta como actualizada. Se mostrarán datos cuando una consulta real de FTM produzca registros verificables.",
+  "sources": [
+    {
+      "label": "FTM AVANZA · portal oficial",
+      "url": "https://competicion.ftm.es/app/",
+      "role": "primaria"
+    },
+    {
+      "label": "RFET · calendarios territoriales",
+      "url": "https://www.rfet.es/es/calendarios.html",
+      "role": "enlace institucional"
+    }
+  ],
+  "tournaments": []
+}
