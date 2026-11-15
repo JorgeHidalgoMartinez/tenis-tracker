@@ -1,0 +1,1 @@
+{"name":"Tenis Tracker · Torneos","short_name":"Tenis Tracker","description":"Buscador de torneos de tenis con trazabilidad de las fuentes federativas.","start_url":"./index.html","display":"standalone","background_color":"#f5f7fb","theme_color":"#10243b","icons":[{"src":"assets/icon.svg","type":"image/svg+xml","sizes":"any","purpose":"any maskable"}]}
