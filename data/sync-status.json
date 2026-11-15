@@ -1,12 +1,12 @@
 {
-  "checkedAt": "2026-11-15T18:12:38+01:00",
+  "checkedAt": "2026-11-15T18:14:40+01:00",
   "success": false,
   "message": "Sin actualización: no se obtuvieron torneos verificables de FTM. Se conserva la última instantánea, si existe.",
   "sources": [
     {
       "source": "FTM",
       "success": false,
-      "error": "No se puede abrir el calendario público FTM"
+      "error": "La portada pública FTM no está disponible en este entorno (HTTP 403)"
     },
     {
       "source": "RFET",
