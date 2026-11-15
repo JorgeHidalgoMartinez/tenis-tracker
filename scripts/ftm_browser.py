@@ -120,11 +120,18 @@ def fetch_tournaments() -> list[dict]:
         page = context.new_page()
         page.set_default_timeout(20000)
         page.set_default_navigation_timeout(35000)
-        response = page.goto(CALENDAR, wait_until='domcontentloaded')
-        if not response or response.status >= 400:
-            raise RuntimeError('No se puede abrir el calendario público FTM')
-        expect(page.locator('.caja_mes_calendario.activa')).to_be_visible()
-        expect(page.locator('.lista_torneo').first).to_be_visible()
+        def open_calendar():
+            # Entrar por portada y usar la navegación normal de la aplicación.
+            # El servidor puede no servir las rutas internas de Angular directamente.
+            response = page.goto('https://competicion.ftm.es/app/', wait_until='domcontentloaded')
+            if not response or response.status >= 400:
+                status = response.status if response else 'sin respuesta'
+                raise RuntimeError(f'La portada pública FTM no está disponible en este entorno (HTTP {status})')
+            page.get_by_role('link', name='Calendario', exact=True).click()
+            expect(page.locator('.caja_mes_calendario.activa')).to_be_visible()
+            expect(page.locator('.lista_torneo').first).to_be_visible()
+
+        open_calendar()
         boxes = page.locator('.caja_mes_calendario')
         active = next(i for i in range(boxes.count()) if 'activa' in (boxes.nth(i).get_attribute('class') or '').split())
         month_labels = [boxes.nth(i).inner_text() for i in [active-1, active, active+1] if 0 <= i < boxes.count()]
@@ -152,9 +159,7 @@ def fetch_tournaments() -> list[dict]:
         if len(unique) > 20:
             raise RuntimeError('Más de 20 candidatos; revisar la cobertura antes de aumentar consultas')
         for candidate in unique.values():
-            page.goto(CALENDAR, wait_until='domcontentloaded')
-            expect(page.locator('.caja_mes_calendario.activa')).to_be_visible()
-            expect(page.locator('.lista_torneo').first).to_be_visible()
+            open_calendar()
             select_month(candidate['month'])
             page.get_by_role('link', name=candidate['name'], exact=True).click()
             expect(page.locator('#general .nombre_torneo')).to_have_text(candidate['name'])
