@@ -1,55 +1,86 @@
 # Tenis Tracker
 
-Buscador de torneos de tenis absoluto para Madrid y alrededores, a partir del proyecto Tenis Tracker v2.
+Buscador personal de torneos de tenis absoluto en Madrid y alrededores.
 
 **Web:** https://jorgehidalgomartinez.github.io/tenis-tracker/
 
-## Qué muestra
+## Datos y cobertura
 
-- Búsqueda, filtros, favoritos en este navegador, importación JSON y exportación CSV.
-- Solo datos obtenidos mediante consultas reales. La instantánea antigua del ZIP se conserva en `docs/instantanea_original_no_revalidada.json` como referencia **no revalidada**, fuera de la web publicada.
-- La fecha de obtención y el resultado del último intento son independientes. Un fallo nunca cambia la fecha del catálogo ni se anuncia como actualización correcta.
+La web carga `data/torneos.json`, que solo se sustituye si una consulta real de
+FTM produce registros identificables. El resultado del último intento se guarda
+separadamente en `data/sync-status.json`. Una respuesta vacía, un error de acceso
+o un cambio de formato no se presentan como actualización correcta.
 
-## Sincronización
+El lector abre el calendario público AVANZA en Chromium estándar, sin iniciar
+sesión. Comprueba el mes anterior, el actual y el siguiente, y revisa las fichas
+con ABSOLUTO en el título, hasta un máximo de 20. Incluye títulos mixtos
+absoluto/veteranos y masculino/femenino; excluye equipos, dobles y otros deportes.
+La modalidad individual masculina solo se confirma cuando aparece explícitamente
+en «Pruebas y cuadros».
 
-`.github/workflows/sync.yml` se ejecuta diariamente a las **07:15 UTC** (08:15 en invierno / 09:15 en verano en Madrid), al subir código a `main` y manualmente desde Actions.
+La dirección administrativa del club no se considera sede de juego. La ubicación
+solo se recoge cuando la ficha declara expresamente la sede. Las distancias no
+se calculan sin coordenadas fiables. Un aviso de suspensión de una jornada no
+supone que se haya cancelado todo el torneo.
 
-1. Instala las dependencias y ejecuta las pruebas.
-2. Consulta el buscador público FTM/AVANZA mediante la ruta y los parámetros que utiliza el JavaScript público del portal. No usa credenciales ni consultas a jugadores.
-3. Consulta RFET como directorio de calendarios territoriales. **No importa ni afirma cubrir el calendario nacional RFET.**
-4. Guarda el catálogo solo si obtiene torneos identificables. Guarda el estado de la consulta, también cuando falla.
-5. Publica únicamente la aplicación, los iconos y los JSON mediante GitHub Pages con Actions. El fallo de extracción se muestra en la web y hace fallar la ejecución tras publicar el diagnóstico.
+Los plazos de inscripción se comparan con la hora de Madrid. Una inscripción
+abierta no demuestra plazas disponibles. RFET se consulta como directorio de
+calendarios territoriales: **no se importa todo su calendario nacional**.
 
-El endpoint de AVANZA **no es una API pública documentada ni un contrato estable**. La consulta está limitada a la primera página del buscador (hasta 10 resultados, nombre ABSOLUTO, inicio desde 21 días antes). Puede omitir torneos de denominación genérica o anteriores, y fallar si cambian el formato o los permisos. No intenta saltar bloqueos ni autenticación. El HTML inicial de AVANZA es una aplicación Angular, y por sí solo no contiene los torneos.
+## Automatización
 
-## Verificación de datos
+`.github/workflows/sync.yml` se ejecuta a las **07:15 UTC** cada día (08:15 en
+invierno y 09:15 en verano en Madrid), al subir a `main` y manualmente desde
+Actions. Instala dependencias y Chromium, ejecuta las pruebas, consulta las fuentes,
+guarda el resultado y publica los archivos de la aplicación mediante Pages.
 
-- El título y las fechas deben estar explícitos; se descartan respuestas inesperadas.
-- Modalidad individual masculina, sede, superficie, distancia e inscripción se dejan pendientes hasta disponer de evidencia específica. Un resultado publicado no demuestra plazas libres.
-- `data/sync-status.json`: resultado del último intento y errores por fuente.
-- `data/torneos.json`: última instantánea válida. Si todavía no existe una consulta satisfactoria, permanece vacío y sin fecha de obtención.
-- Los ejemplos sintéticos están únicamente en las pruebas; no alimentan el catálogo publicado.
+Si falla FTM, publica el diagnóstico y conserva la última instantánea válida.
+Actions termina con error para que el fallo federativo sea visible. El despliegue
+puede haberse completado correctamente aunque la ejecución termine en error.
+
+El HTML inicial de AVANZA no contiene los torneos; se cargan con JavaScript.
+La consulta HTTP directa del endpoint devolvió 403 durante la revisión. El lector
+actual utiliza la navegación pública normal, sin modificar la huella del navegador,
+introducir proxies, usar cuentas ni eludir controles de acceso.
+
+## Uso personal y privacidad
+
+Se conservan hechos mínimos del torneo y enlaces oficiales. No se importan
+jugadores, resultados individuales, contactos, fotos ni cuadros. Los favoritos
+se guardan en el navegador y no se sincronizan entre dispositivos. No se realizan
+inscripciones.
+
+Las condiciones de FTM reservan derechos sobre la reutilización de sus contenidos.
+La comprobación técnica no es una autorización general para redistribuir su base
+de datos. El proyecto está destinado a uso personal y no publica textos completos
+ni su base de datos íntegra.
+
+La instantánea original del ZIP permanece en
+`docs/instantanea_original_no_revalidada.json`, como referencia **no revalidada**,
+fuera del sitio publicado. Los ejemplos sintéticos existen únicamente en tests.
 
 ## Desarrollo
 
 ```bash
 python -m pip install -r requirements.txt
+python -m playwright install --with-deps chromium
 python -m unittest discover -s tests -v
 python scripts/sync_torneos.py --dry-run
 python scripts/sync_torneos.py
 python scripts/build.py
 ```
 
-Los favoritos se guardan en `localStorage` de cada navegador; no se sincronizan entre dispositivos. La web no accede a cuentas federativas, no realiza inscripciones y no consulta horarios ni resultados personales.
-
 ## Fuentes
 
-- https://competicion.ftm.es/app/
-- https://competicion.ftm.es/app/api/calendario.do — consulta de búsqueda utilizada por el cliente público AVANZA (`busquedaTorneos`).
+- https://competicion.ftm.es/app/calendario/mensual
+- Ficha pública de cada torneo enlazada desde el calendario.
 - https://www.rfet.es/es/calendarios.html
+- https://competicion.ftm.es/app/seguridad/condiciones
 
-La descarga de las páginas públicas y de su JavaScript permite comprobar la estructura técnica, pero no implica permiso de reutilización ilimitado. Deben respetarse las condiciones de cada fuente y cualquier restricción comunicada por la federación.
+## Límites
 
-## Limitaciones de funcionamiento
-
-Las fuentes pueden bloquear consultas desde centros de datos o cambiar sin aviso. La automatización diaria es un intento programado; no garantiza datos nuevos cada día ni una hora exacta. GitHub puede desactivar programaciones de repositorios públicos tras 60 días sin actividad. Se debe revisar Actions si dejan de aparecer intentos.
+Cobertura parcial por meses y denominación del torneo; puede omitir eventos con
+nombres genéricos. Las sedes y modalidades no demostradas quedan pendientes.
+La extracción depende del HTML de un tercero y puede fallar si cambia o restringe
+el acceso. La programación de Actions no garantiza una hora exacta; GitHub puede
+desactivar las programaciones de repositorios públicos tras 60 días sin actividad.
