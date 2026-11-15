@@ -1,12 +1,12 @@
 {
-  "checkedAt": "2026-11-15T16:17:19+01:00",
+  "checkedAt": "2026-11-15T18:12:38+01:00",
   "success": false,
   "message": "Sin actualización: no se obtuvieron torneos verificables de FTM. Se conserva la última instantánea, si existe.",
   "sources": [
     {
       "source": "FTM",
       "success": false,
-      "error": "403 Client Error: Forbidden for url: https://competicion.ftm.es/app/api/calendario.do"
+      "error": "No se puede abrir el calendario público FTM"
     },
     {
       "source": "RFET",
