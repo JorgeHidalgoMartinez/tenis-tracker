@@ -194,16 +194,20 @@ def parse_public_json(payload: dict) -> list[dict]:
 
 
 def fetch_public_tournaments() -> list[dict]:
-    # Ruta y parámetros observados en el JS público de AVANZA, versión 202611121406.
-    # No es una API oficial documentada: puede cambiar sin aviso.
-    params = {'accion': 'busquedaTorneos', 'start': 1, 'count': 10,
-              'categorias': [], 'nombre': 'ABSOLUTO',
-              'fechaInicio': (datetime.now(TIMEZONE) - timedelta(days=21)).strftime('%d/%m/%Y')}
-    response = requests.post(FTM_API, json=params, headers=HEADERS, timeout=25, allow_redirects=False)
-    response.raise_for_status()
-    if response.is_redirect:
-        raise ValueError('FTM redirige la consulta pública: no se sigue hacia autenticación')
-    return parse_public_json(response.json())
+    from ftm_browser import fetch_tournaments
+    records = []
+    for item in fetch_tournaments():
+        record = make_record(item['name'], item['startDate'], item['endDate'],
+            'ftm_browser', item['sourceUrl'],
+            'Nombre, fechas y modalidad leídos de calendario y ficha pública AVANZA, sin cuenta federativa.')
+        record.update(item)
+        record['id'] = 'ftm-' + re.search(r'/([0-9]+)/?$', item['sourceUrl']).group(1)
+        record['note'] = ('La ficha tiene un aviso: comprobarlo antes de acudir. El aviso no demuestra la cancelación de todo el torneo.'
+                          if item['hasNotice'] else 'Inscripción y fechas consultadas en ficha federativa; no demuestra plazas disponibles.')
+        if item['hasNotice']:
+            record['status'] = 'needs_review'
+        records.append(record)
+    return records
 
 
 def write_status(ok: bool, message: str, sources: list[dict]):
@@ -255,12 +259,12 @@ def run(args):
     data={
         'schemaVersion':1,
         'generatedAt':today.isoformat(timespec='seconds'),
-        'generationMode':'extraccion_publica_automatica_parcial',
+        'generationMode':'navegador_publico_automatico_parcial',
         'origin':{'name':'Rivas-Vaciamadrid','lat':40.3293,'lon':-3.5161,'radiusKm':100},
-        'coverage':'Parcial: primera página (hasta 10 registros) del buscador público AVANZA; la RFET se consulta como directorio territorial. Ningún partido, inscripción o distancia se deduce de datos ausentes.',
+        'coverage':'Parcial: torneos con ABSOLUTO en el título, calendario FTM del mes anterior, actual y siguiente; fichas comprobadas en navegador sin autenticación. RFET es directorio territorial. Ningún partido, inscripción o distancia se deduce de datos ausentes.',
         'sources':[
             {'label':'FTM AVANZA · portal oficial','url':FTM_HOME,'role':'primaria'},
-            {'label':'FTM · torneos de la federación','url':FTM_CLUB,'role':'primaria'},
+            {'label':'FTM · calendario mensual','url':'https://competicion.ftm.es/app/calendario/mensual','role':'primaria'},
             {'label':'RFET · calendarios','url':RFET_CALENDAR,'role':'directorio'}
         ],
         'tournaments':sorted(verified,key=lambda t:(t['startDate'],t['name']))
