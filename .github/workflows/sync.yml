@@ -1,0 +1,64 @@
+name: Sincronizar y publicar Tenis Tracker
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+  schedule:
+    - cron: '15 7 * * *'
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+concurrency:
+  group: tenis-tracker-pages
+  cancel-in-progress: false
+jobs:
+  sync-and-deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+      - run: python -m pip install -r requirements.txt
+      - name: Pruebas de extracción y conservación de datos
+        run: python -m unittest discover -s tests -v
+      - name: Consultar fuentes federativas reales
+        id: sync
+        continue-on-error: true
+        run: python scripts/sync_torneos.py
+      - name: Reconstruir con la última instantánea válida
+        run: python scripts/build.py
+      - name: Guardar los datos y el resultado de la consulta
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/torneos.json data/sync-status.json index.html
+          if ! git diff --cached --quiet; then
+            git commit -m "Registrar sincronización real FTM/RFET"
+            git push
+          fi
+      - uses: actions/configure-pages@v5
+      - name: Preparar solo archivos públicos de la aplicación
+        run: |
+          mkdir -p _site/data _site/assets
+          cp index.html manifest.webmanifest sw.js _site/
+          cp assets/icon.svg _site/assets/
+          cp data/torneos.json data/sync-status.json _site/data/
+          touch _site/.nojekyll
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+      - name: Publicar GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+      - name: Informar del resultado real de sincronización
+        if: steps.sync.outcome == 'failure'
+        run: |
+          echo 'La web se ha publicado con el estado de error visible; no hay una actualización federativa confirmada.' >> "$GITHUB_STEP_SUMMARY"
+          exit 1
