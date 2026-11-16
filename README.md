@@ -4,6 +4,19 @@ Buscador personal de torneos de tenis absoluto en Madrid y alrededores.
 
 **Web:** https://jorgehidalgomartinez.github.io/tenis-tracker/
 
+## Estado comprobado · 15/11/2026
+
+La web contiene una revisión manual de **8 fichas reales** en un navegador sin
+iniciar sesión. Cada registro conserva la hora de revisión y el enlace directo.
+No son ejemplos ni una actualización automática: `generationMode` indica
+`revision_manual_navegador`.
+
+GitHub Actions devuelve **HTTP 403 incluso con Chromium estándar y entrada por
+la portada**. La actualización diaria está configurada, pero todavía no consigue
+leer FTM desde ese entorno. Conserva la revisión manual y publica el diagnóstico.
+RFET sí responde como directorio. La navegación pública funciona desde el
+navegador usado para esta revisión; eso no garantiza acceso desde GitHub.
+
 ## Datos y cobertura
 
 La web carga `data/torneos.json`, que solo se sustituye si una consulta real de
