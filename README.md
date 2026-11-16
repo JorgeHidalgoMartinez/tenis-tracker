@@ -97,3 +97,16 @@ nombres genéricos. Las sedes y modalidades no demostradas quedan pendientes.
 La extracción depende del HTML de un tercero y puede fallar si cambia o restringe
 el acceso. La programación de Actions no garantiza una hora exacta; GitHub puede
 desactivar las programaciones de repositorios públicos tras 60 días sin actividad.
+
+
+## Seguimiento de Jorge (16/11/2026)
+
+Inicio con ficha RFET verificada por licencia, ranking nacional/territorial, puntos, fecha de cierre e historial de cierres. Mis torneos conserva inscripciones y partidos; Rival compara clasificaciones del mismo cierre y los enfrentamientos cargados; Buscar torneos conserva el buscador anterior.
+
+El perfil deportivo público contiene únicamente nombre, licencia, club y clasificación pública (`data/player-public.json`). Octubre 2026 v1 se verificó en el portal oficial: nacional 5384, territorial 850, 61 puntos, cierre 31/10/2026, publicación 10/11/2026. Es una consulta manual fechada, no un ranking consultado en directo. El sincronizador de torneos no actualiza todavía esta ficha.
+
+Inscripciones, resultados importados y notas se conservan en `localStorage` del navegador. No hay autenticación, cifrado de esas notas ni sincronización entre dispositivos; no equivale a una cuenta privada. Exportar/importar el perfil permite trasladarlo. No subir copias personales al repositorio. Los favoritos y los torneos anotados por el usuario no acreditan una inscripción. La importación se valida y requiere revisar el resumen antes de sustituir la copia local.
+
+Los partidos pasados no aparecen como próximos y los torneos finalizados o retirados se excluyen de la agenda futura. Marcadores desde Jorge; cualquier anotación manual se distingue de una fuente oficial. Comparar rankings no produce probabilidades de victoria ni inferencias sobre la técnica del rival.
+
+Construcción: `python scripts/build.py` incrusta `personal.js`, `personal.css` y el perfil público en `index.html`; el despliegue existente sigue publicando el mismo HTML autónomo. Pruebas: `python -m unittest discover -s tests -v` y `node test-personal.cjs`.
